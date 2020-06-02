@@ -2,8 +2,18 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def sigmoid(x):
-    return 1.0 / (1.0 + np.exp(-x))
+class Sigmoid:
+    def __init__(self):
+        self.params = []
+    def forward(self, x):
+        return 1.0 / (1.0 + np.exp(-x))
+
+class Affine:
+    def __init__(self, W, b):
+        self.params = [W, b]
+    def forward(self, x):
+        W, b = self.params
+        return np.dot(x, W) + b
 
 def show_sigmoid():
     x = np.arange(-5, 5, 0.1)
@@ -46,7 +56,7 @@ def all_connection():
     #print(b1)
     #print(x)
     print(h)
-    a  = sigmoid(h)
+    a  = Sigmoid.forward(h)
     s  = np.dot(a,W2) + b2
     print(s)
 
