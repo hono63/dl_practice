@@ -15,6 +15,59 @@ class Affine:
         W, b = self.params
         return np.dot(x, W) + b
 
+class SoftmaxWithLoss:
+    def __init__(self):
+        self.params, self.grad = [], []
+        self.t = None # Teacher Data
+        self.y = None # Output Data
+    def forward(self, x, t):
+        self.y = softmax(x)
+        self.t = t
+        # 教師ラベルがone-hotベクトルの場合、正解のインデックスに変換
+        if self.t.size == self.y.size:
+            self.t = self.t.argmax(axis=1) # argmaxは最大値のあるindexを返す
+        loss = cross_entropy(self.y, self.t)
+        return loss
+    def backward(self, dout=1):
+        batch_size = self.t.shape[0]
+        dx = self.y.copy()
+        dx[np.arange(batch_size), self.t] -= 1
+        dx *= dout
+        dx = dx / batch_size
+        return dx
+
+
+class TwoLayerNet:
+    def __init__(self, input_size, hidden_size, output_size):
+        I, H, O = input_size, hidden_size, output_size
+        # Initialize Weight & Bias
+        W1 = np.random.randn(I, H)
+        b1 = np.random.randn(H)
+        W2 = np.random.randn(H, O)
+        b2 = np.random.randn(O)
+        # Generate Layer
+        self.layers = [
+            Affine(W1, b1),
+            Sigmoid(),
+            Affine(W2, b2)
+        ]
+        # Aggregate all layers' parameters
+        self.params = []
+        for layer in self.layers:
+            self.params.append(layer.params)
+    def predict(self, x):
+        for layer in self.layers:
+            x = layer.forward(x)
+        return x
+
+def softmax(x):
+    "xは1次元のndarrayベクトル"
+    return np.exp(x) / np.sum(x)
+
+def cross_entropy(y, t):
+    "交差エントロピー誤差. yは出力値、tは教師データ"
+    return -np.sum(t * np.log(y))
+
 def show_sigmoid():
     x = np.arange(-5, 5, 0.1)
     y = 1.0 / (1.0 + np.exp(-x)) # これでyもndarrayになる
@@ -61,5 +114,5 @@ def all_connection():
     print(s)
 
 if __name__=="__main__":
-    #show_sigmoid()
-    all_connection()
+    show_sigmoid()
+    #all_connection()
