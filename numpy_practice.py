@@ -1,19 +1,38 @@
 
+import copy
 import numpy as np
 import matplotlib.pyplot as plt
 
 class Sigmoid:
+    "Sigmoid Layer. y = 1 / (1 + exp(-x))"
     def __init__(self):
         self.params = []
+        self.out = None # 順伝播の出力
     def forward(self, x):
-        return 1.0 / (1.0 + np.exp(-x))
+        self.out = 1.0 / (1.0 + np.exp(-x))
+        return self.out
+    def backward(self, dout):
+        dx = dout * self.out * (1 - self.out) # dy/dx = y(1-y).  xへの逆伝播は dL/dy*dy/dx. ここでdL/dyがdout.
+        return dx
 
 class Affine:
+    "全結合層 y = xW + b"
     def __init__(self, W, b):
         self.params = [W, b]
+        self.grads  = [np.zeros_like(W), np.zeros_like(b)]
+        self.x      = None
     def forward(self, x):
-        W, b = self.params
+        self.x = x
+        W, b   = self.params
         return np.dot(x, W) + b
+    def backward(self, dout):
+        W, b   = self.params
+        dx = np.dot(dout, W.T) # dy/dL * Wの転置
+        dW = np.dot(dout, self.x.T) # dy/dL * xの転置
+        db = np.sum(dout, axis=0) # dy/dLの全行を足し合わせて1行に
+        self.grads[0] = copy.deepcopy(dW)
+        self.grads[1] = copy.deepcopy(db)
+        return dx
 
 class SoftmaxWithLoss:
     def __init__(self):
