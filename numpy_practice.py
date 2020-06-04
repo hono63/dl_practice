@@ -3,6 +3,8 @@ import copy
 import numpy as np
 import matplotlib.pyplot as plt
 
+from dataset import spiral 
+
 class Sigmoid:
     "Sigmoid Layer. y = 1 / (1 + exp(-x))"
     def __init__(self):
@@ -57,6 +59,7 @@ class SoftmaxWithLoss:
 
 
 class TwoLayerNet:
+    "Affineを二層つなげたネットワーク"
     def __init__(self, input_size, hidden_size, output_size):
         I, H, O = input_size, hidden_size, output_size
         # Initialize Weight & Bias
@@ -91,6 +94,12 @@ def show_sigmoid():
     x = np.arange(-5, 5, 0.1)
     y = 1.0 / (1.0 + np.exp(-x)) # これでyもndarrayになる
     plt.plot(x,y)
+    plt.show()
+
+def show_spiral():
+    x, t = spiral.load_data()
+    #print(x.shape, t.shape)
+    plt.scatter(x[0], x[1])
     plt.show()
 
 def 基本():
@@ -133,5 +142,6 @@ def all_connection():
     print(s)
 
 if __name__=="__main__":
-    show_sigmoid()
+    #show_sigmoid()
+    show_spiral()
     #all_connection()
