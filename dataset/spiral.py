@@ -11,7 +11,7 @@ def load_data(seed=1984):
     t = np.zeros((N*CLS_NUM, CLS_NUM), dtype=np.int)
 
     for j in range(CLS_NUM):
-        for i in range(N):#N*j, N*(j+1)):
+        for i in range(N): # N*j, N*(j+1)):
             rate = i / N
             radius = 1.0*rate
             theta = j*4.0 + 4.0*rate + np.random.randn()*0.2

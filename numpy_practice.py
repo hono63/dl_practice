@@ -99,7 +99,9 @@ def show_sigmoid():
 def show_spiral():
     x, t = spiral.load_data()
     #print(x.shape, t.shape)
-    plt.scatter(x[0], x[1])
+    plt.scatter(x[0:100, 0], x[0:100, 1])
+    plt.scatter(x[100:200, 0], x[100:200, 1])
+    plt.scatter(x[200:300, 0], x[200:300, 1])
     plt.show()
 
 def 基本():
