@@ -1,94 +1,115 @@
+"Main"
 
-import copy
 import numpy as np
 import matplotlib.pyplot as plt
 
+from common.layers import Affine, Sigmoid, SoftmaxWithLoss
+from common.optimizer import SGD
 from dataset import spiral 
-
-class Sigmoid:
-    "Sigmoid Layer. y = 1 / (1 + exp(-x))"
-    def __init__(self):
-        self.params = []
-        self.out = None # 順伝播の出力
-    def forward(self, x):
-        self.out = 1.0 / (1.0 + np.exp(-x))
-        return self.out
-    def backward(self, dout):
-        dx = dout * self.out * (1 - self.out) # dy/dx = y(1-y).  xへの逆伝播は dL/dy*dy/dx. ここでdL/dyがdout.
-        return dx
-
-class Affine:
-    "全結合層 y = xW + b"
-    def __init__(self, W, b):
-        self.params = [W, b]
-        self.grads  = [np.zeros_like(W), np.zeros_like(b)]
-        self.x      = None
-    def forward(self, x):
-        self.x = x
-        W, b   = self.params
-        return np.dot(x, W) + b
-    def backward(self, dout):
-        W, b   = self.params
-        dx = np.dot(dout, W.T) # dy/dL * Wの転置
-        dW = np.dot(dout, self.x.T) # dy/dL * xの転置
-        db = np.sum(dout, axis=0) # dy/dLの全行を足し合わせて1行に
-        self.grads[0] = copy.deepcopy(dW)
-        self.grads[1] = copy.deepcopy(db)
-        return dx
-
-class SoftmaxWithLoss:
-    def __init__(self):
-        self.params, self.grad = [], []
-        self.t = None # Teacher Data
-        self.y = None # Output Data
-    def forward(self, x, t):
-        self.y = softmax(x)
-        self.t = t
-        # 教師ラベルがone-hotベクトルの場合、正解のインデックスに変換
-        if self.t.size == self.y.size:
-            self.t = self.t.argmax(axis=1) # argmaxは最大値のあるindexを返す
-        loss = cross_entropy(self.y, self.t)
-        return loss
-    def backward(self, dout=1):
-        batch_size = self.t.shape[0]
-        dx = self.y.copy()
-        dx[np.arange(batch_size), self.t] -= 1
-        dx *= dout
-        dx = dx / batch_size
-        return dx
-
 
 class TwoLayerNet:
     "Affineを二層つなげたネットワーク"
     def __init__(self, input_size, hidden_size, output_size):
+        """
+        class initializer
+
+        Parameters
+        --------
+        input_size : int
+            the number of input neurons
+        hidden_size : int
+            the number of hidden neurons
+        output_size : int
+            the number of output neurons
+        """
         I, H, O = input_size, hidden_size, output_size
         # Initialize Weight & Bias
         W1 = np.random.randn(I, H)
         b1 = np.random.randn(H)
         W2 = np.random.randn(H, O)
         b2 = np.random.randn(O)
-        # Generate Layer
+        # Generate Layers
         self.layers = [
             Affine(W1, b1),
             Sigmoid(),
             Affine(W2, b2)
         ]
-        # Aggregate all layers' parameters
-        self.params = []
+        self.loss_layer = SoftmaxWithLoss()
+        # Store all layers' parameters
+        self.params, self.grads = [], []
         for layer in self.layers:
-            self.params.append(layer.params)
+            self.params.extend(layer.params)
+            self.grads.extend(layer.grads)
     def predict(self, x):
         for layer in self.layers:
             x = layer.forward(x)
         return x
+    def forward(self, x, t):
+        """
+        Parameters
+        --------
+        x: ndarray
+            input of the highest layer
+        t: ndarray
+            teacher data
 
-def softmax(x):
-    "xは1次元のndarrayベクトル"
-    return np.exp(x) / np.sum(x)
+        Returns
+        --------
+        loss: ndarray
+            loss of prediction result
+        """
+        score = self.predict(x)
+        loss  = self.loss_layer.forward(score, t)
+        return loss
+    def backward(self, dout=1):
+        dout = self.loss_layer.backward(dout)
+        for layer in reversed(self.layers):
+            dout - layer.backward(dout)
+        return dout
 
-def cross_entropy(y, t):
-    "交差エントロピー誤差. yは出力値、tは教師データ"
-    return -np.sum(t * np.log(y))
+def train_custom_loop():
+    # Hyper parameters
+    MAX_EPOCH = 300
+    BATCH_SIZE = 30
+    HIDDEN_SIZE = 10
+    LEARNING_RATE = 1.0
+
+    # Load data and generate optimizer
+    x, t = spiral.load_data()
+    model = TwoLayerNet(input_size=2, hidden_size=HIDDEN_SIZE, output_size=3)
+    optimizer = SGD(lr=LEARNING_RATE)
+
+    # variables used in learning
+    data_size = len(x)
+    max_iters = data_size // BATCH_SIZE
+    total_loss = 0
+    loss_count = 0
+    loss_list = []
+
+    # data shuffle
+    for epoch in range(MAX_EPOCH):
+        idx = np.random.permutation(data_size) # 0~data_sizeの数字をランダムに並べ替えたndarrayを生成する
+        x = x[idx]
+        t = t[idx]
+        for iters in range(max_iters):
+            batch_x = x[iters*BATCH_SIZE : (iters+1)*BATCH_SIZE]
+            batch_t = t[iters*BATCH_SIZE : (iters+1)*BATCH_SIZE]
+
+            # update gradients and parameters
+            loss = model.forward(batch_x, batch_t)
+            model.backward()
+            optimizer.update(model.params, model.grads)
+
+            total_loss += loss
+            loss_count += 1
+
+            # print learning progress
+            if (iters+1) % 10 == 0:
+                avg_loss = total_loss / loss_count
+                print('| epoch %d | iter %d / %d | loss %.2f' % (epoch + 1, iters + 1, max_iters, avg_loss))
+                loss_list.append(avg_loss)
+                total_loss, loss_count = 0, 0
+
 
 def show_sigmoid():
     x = np.arange(-5, 5, 0.1)
@@ -145,5 +166,6 @@ def all_connection():
 
 if __name__=="__main__":
     #show_sigmoid()
-    show_spiral()
+    #show_spiral()
     #all_connection()
+    train_custom_loop()
