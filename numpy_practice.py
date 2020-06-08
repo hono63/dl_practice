@@ -35,11 +35,11 @@ class TwoLayerNet:
             Affine(W2, b2)
         ]
         self.loss_layer = SoftmaxWithLoss()
-        # Store all layers' parameters
-        self.params, self.grads = [], []
+        # Store all layers' parameters (オリジナルとは異なる)
+        self.params_list, self.grads_list = [], []
         for layer in self.layers:
-            self.params.extend(layer.params)
-            self.grads.extend(layer.grads)
+            self.params_list.append(layer.params)
+            self.grads_list.append(layer.grads)
     def predict(self, x):
         for layer in self.layers:
             x = layer.forward(x)
@@ -64,7 +64,7 @@ class TwoLayerNet:
     def backward(self, dout=1):
         dout = self.loss_layer.backward(dout)
         for layer in reversed(self.layers):
-            dout - layer.backward(dout)
+            dout = layer.backward(dout)
         return dout
 
 def train_custom_loop():
@@ -73,19 +73,16 @@ def train_custom_loop():
     BATCH_SIZE = 30
     HIDDEN_SIZE = 10
     LEARNING_RATE = 1.0
-
     # Load data and generate optimizer
     x, t = spiral.load_data()
     model = TwoLayerNet(input_size=2, hidden_size=HIDDEN_SIZE, output_size=3)
     optimizer = SGD(lr=LEARNING_RATE)
-
     # variables used in learning
     data_size = len(x)
     max_iters = data_size // BATCH_SIZE
     total_loss = 0
     loss_count = 0
     loss_list = []
-
     # data shuffle
     for epoch in range(MAX_EPOCH):
         idx = np.random.permutation(data_size) # 0~data_sizeの数字をランダムに並べ替えたndarrayを生成する
@@ -94,22 +91,18 @@ def train_custom_loop():
         for iters in range(max_iters):
             batch_x = x[iters*BATCH_SIZE : (iters+1)*BATCH_SIZE]
             batch_t = t[iters*BATCH_SIZE : (iters+1)*BATCH_SIZE]
-
             # update gradients and parameters
             loss = model.forward(batch_x, batch_t)
             model.backward()
-            optimizer.update(model.params, model.grads)
-
+            optimizer.update(model.params_list, model.grads_list)
             total_loss += loss
             loss_count += 1
-
             # print learning progress
             if (iters+1) % 10 == 0:
                 avg_loss = total_loss / loss_count
-                print('| epoch %d | iter %d / %d | loss %.2f' % (epoch + 1, iters + 1, max_iters, avg_loss))
+                print('| epoch %d | iter %d / %d | loss %.2f |' % (epoch + 1, iters + 1, max_iters, avg_loss))
                 loss_list.append(avg_loss)
                 total_loss, loss_count = 0, 0
-
 
 def show_sigmoid():
     x = np.arange(-5, 5, 0.1)
