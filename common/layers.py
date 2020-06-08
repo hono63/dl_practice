@@ -40,8 +40,8 @@ class Affine:
             dL/dy matrix (Rows: the number of data, Cols: the number of output nodes)
         --------
         """
-        dx = np.dot(dout, self.params["W"].T)      # dL/dy . Wの転置
-        dW = np.dot(self.x.T, dout) # x . dL/dyの転置
+        dx = np.dot(dout, self.params["W"].T)      # dL/dy . W^T
+        dW = np.dot(self.x.T, dout) # (dL/dy)^T . x
         db = np.sum(dout, axis=0)   # dL/dyの全行を足し合わせて1行に
         self.grads["W"] = dW.copy()
         self.grads["b"] = db.copy()
