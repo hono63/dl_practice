@@ -1,7 +1,7 @@
 "Library of Layers"
 
 import copy
-import numpy as np
+from common.np import *  # import numpy as np
 
 class Sigmoid:
     "Sigmoid Layer. y = 1 / (1 + exp(-x))"

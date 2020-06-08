@@ -6,7 +6,10 @@ import matplotlib.pyplot as plt
 from common.layers import Affine, Sigmoid, SoftmaxWithLoss
 from common.optimizer import SGD
 from common import utils
+from common import config
 from dataset import spiral 
+
+config.GPU = True
 
 class TwoLayerNet:
     "Affineを二層つなげたネットワーク"
