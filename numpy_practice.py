@@ -52,15 +52,15 @@ class TwoLayerNet:
         """
         Parameters
         --------
-        x: ndarray
-            input of the highest layer
-        t: ndarray
+        x : ndarray
+            input of the highest layer  
+        t : ndarray
             teacher data
 
         Returns
         --------
-        loss: ndarray
-            loss of prediction result
+            loss: ndarray
+        loss of prediction result
         """
         score = self.predict(x)
         loss  = self.loss_layer.forward(score, t)

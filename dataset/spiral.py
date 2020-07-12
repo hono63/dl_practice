@@ -2,6 +2,15 @@
 import numpy as np
 
 def load_data(seed=1984):
+    """Load spiral data.
+
+    Args:
+        seed (int, optional): Defaults to 1984.
+
+    Returns:
+        x: 300x2 spiral data matrix
+        t: 300x3 teacher label matrix
+    """
     np.random.seed(seed)
     N = 100  # クラスごとのサンプル数
     DIM = 2  # データの要素数
