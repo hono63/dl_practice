@@ -13,7 +13,16 @@ from dataset import spiral
 config.GPU = True
 
 def preprocessing(text):
-    "コーパスを作成する"
+    """コーパスを作成する
+
+    Args:
+        text (string): natual text
+
+    Returns:
+        list: corpus
+        dict: word to ID
+        dict: ID to word
+    """
     words = text.lower().replace(".", " .").split(" ")
     word_to_id = {}
     id_to_word = {}
@@ -37,7 +46,6 @@ def create_co_matrix(corpus, vocab_size, window_size=1):
     Returns:
         numpy matrix: coocurrence matrix (vocab_size x vocab_size)
     """
-    "共起行列を作成する"
     length = len(corpus)
     co_matrix = np.zeros((vocab_size, vocab_size), dtype=np.int32)
     for idx, word_id in enumerate(corpus):
