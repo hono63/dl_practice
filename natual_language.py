@@ -27,6 +27,16 @@ def preprocessing(text):
     return corpus, word_to_id, id_to_word
 
 def create_co_matrix(corpus, vocab_size, window_size=1):
+    """共起行列を作成する
+
+    Args:
+        corpus (list): listed words in corpus
+        vocab_size (int): the number of indentical words in the corpus
+        window_size (int): how many forward&backward words shall be searched. Defaults to 1.
+
+    Returns:
+        numpy matrix: coocurrence matrix (vocab_size x vocab_size)
+    """
     "共起行列を作成する"
     length = len(corpus)
     co_matrix = np.zeros((vocab_size, vocab_size), dtype=np.int32)
