@@ -1,2 +1,2 @@
 # dl_practice
-DL練習
+DL renshu
